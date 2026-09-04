@@ -103,34 +103,40 @@ let currentLevel = 1;
 let selectedCharacter = null;
 
 // Teacher characters
+// cardBase must match the card image filename (without extension) in the
+// cards/ folder - e.g. cards/Deepesh Sir.jpg
 const teachers = [
   {
     name: 'Mr. Deepesh Khatri',
     title: 'Chief Resource Optimizer',
     flavor: 'Gets software running even when the budget says "access denied".',
     stats: { speed: 6, power: 9, debug: 7 },
-    color: '#00f2ff'
+    color: '#00f2ff',
+    cardBase: 'Deepesh Sir'
   },
   {
     name: 'Mr. Chirag Sharma',
     title: 'Keeper of the Legendary ThinkPad',
     flavor: 'His ThinkPad has survived more updates than our new lab PCs.',
     stats: { speed: 9, power: 6, debug: 7 },
-    color: '#00ff9c'
+    color: '#00ff9c',
+    cardBase: 'Chirag Sir'
   },
   {
     name: 'Mrs. Archana Jaimini',
     title: 'System Admin of the School',
     flavor: 'Even without teaching me, she keeps the entire school from crashing.',
     stats: { speed: 6, power: 9, debug: 8 },
-    color: '#ff0055'
+    color: '#ff0055',
+    cardBase: 'Archana Mam'
   },
   {
     name: 'Mrs. Rutuja Gorantiwar',
     title: 'Silent Debugger',
     flavor: 'Fixes everything quietly so the lab looks like it never had issues.',
     stats: { speed: 7, power: 7, debug: 10 },
-    color: '#ffaa00'
+    color: '#ffaa00',
+    cardBase: 'Rutuja Mam'
   }
 ];
 
@@ -189,6 +195,12 @@ const finalScreenEl = document.getElementById('final-screen');
 const replayBtn = document.getElementById('replay-btn');
 const pauseScreenEl = document.getElementById('pause-screen');
 const resumeBtn = document.getElementById('resume-btn');
+const viewCardBtn = document.getElementById('view-card-btn');
+const cardScreenEl = document.getElementById('card-screen');
+const cardStatusEl = document.getElementById('card-status');
+const cardImageEl = document.getElementById('card-image');
+const downloadCardLink = document.getElementById('download-card-link');
+const cardBackBtn = document.getElementById('card-back-btn');
 
 // Game over overlay
 const gameOverEl = document.createElement('div');
@@ -299,6 +311,83 @@ function togglePause(pause) {
   }
 }
 resumeBtn.addEventListener('click', () => togglePause(false));
+
+// ============================================================
+// Mobile touch controls (joystick + fire button)
+// ============================================================
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (isTouchDevice) document.body.classList.add('touch-device');
+
+let touchVector = { x: 0, y: 0 };
+let touchShootHeld = false;
+
+const joystickBase = document.getElementById('joystick-base');
+const joystickKnob = document.getElementById('joystick-knob');
+const fireBtn = document.getElementById('fire-btn');
+
+let joystickPointerId = null;
+const JOYSTICK_RADIUS = 55;
+
+function joystickMove(clientX, clientY) {
+  const rect = joystickBase.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  let dx = clientX - centerX;
+  let dy = clientY - centerY;
+  const dist = Math.hypot(dx, dy);
+  if (dist > JOYSTICK_RADIUS) {
+    dx = (dx / dist) * JOYSTICK_RADIUS;
+    dy = (dy / dist) * JOYSTICK_RADIUS;
+  }
+  joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+  touchVector.x = dx / JOYSTICK_RADIUS;
+  touchVector.y = dy / JOYSTICK_RADIUS;
+}
+
+function joystickReset() {
+  joystickKnob.style.transform = 'translate(0px, 0px)';
+  touchVector.x = 0;
+  touchVector.y = 0;
+  joystickBase.classList.remove('active');
+  joystickPointerId = null;
+}
+
+joystickBase.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  joystickPointerId = e.pointerId;
+  joystickBase.setPointerCapture(e.pointerId);
+  joystickBase.classList.add('active');
+  joystickMove(e.clientX, e.clientY);
+});
+joystickBase.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== joystickPointerId) return;
+  e.preventDefault();
+  joystickMove(e.clientX, e.clientY);
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach((evt) => {
+  joystickBase.addEventListener(evt, (e) => {
+    if (e.pointerId !== joystickPointerId) return;
+    joystickReset();
+  });
+});
+
+fireBtn.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  fireBtn.setPointerCapture(e.pointerId);
+  fireBtn.classList.add('active');
+  touchShootHeld = true;
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach((evt) => {
+  fireBtn.addEventListener(evt, (e) => {
+    e.preventDefault();
+    fireBtn.classList.remove('active');
+    touchShootHeld = false;
+  });
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { resizeCanvas(); initStars(); }, 250);
+});
 
 // ============================================================
 // Starfield background
@@ -448,6 +537,7 @@ function startLevel(level) {
   finalScreenEl.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
   pauseScreenEl.classList.add('hidden');
+  cardScreenEl.classList.add('hidden');
   achievementToast.classList.add('hidden');
 
   // Always start each level with full HP
@@ -661,11 +751,20 @@ function update() {
     player.shieldTime = 0;
   }
 
-  // Player movement
+  // Player movement (keyboard)
   if (keys['arrowleft'] || keys['a']) player.x -= player.speed;
   if (keys['arrowright'] || keys['d']) player.x += player.speed;
   if (keys['arrowup'] || keys['w']) player.y -= player.speed;
   if (keys['arrowdown'] || keys['s']) player.y += player.speed;
+
+  // Player movement (touch joystick - analog, so diagonals feel smooth)
+  if (touchVector.x !== 0 || touchVector.y !== 0) {
+    player.x += touchVector.x * player.speed;
+    player.y += touchVector.y * player.speed;
+  }
+
+  // Touch fire button - auto-fires while held, same cooldown as keyboard
+  if (touchShootHeld) shoot();
 
   player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
   player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
@@ -946,7 +1045,57 @@ replayBtn.addEventListener('click', () => {
   characterSelectEl.classList.remove('hidden');
   finalScreenEl.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
+  cardScreenEl.classList.add('hidden');
   achievementToast.classList.add('hidden');
   selectedCharacter = null;
   currentLevel = 1;
+});
+
+// ============================================================
+// Teacher's Day card image (made in Canva, dropped in cards/ folder)
+// ============================================================
+// Tries a few common extensions in turn, since we don't know exactly
+// which one each exported file uses.
+const CARD_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'JPG', 'PNG'];
+
+function loadCardImage(baseName, onSuccess, onFail) {
+  let i = 0;
+  const img = new Image();
+  const tryNext = () => {
+    if (i >= CARD_EXTENSIONS.length) { onFail(); return; }
+    img.src = `cards/${encodeURIComponent(baseName)}.${CARD_EXTENSIONS[i]}`;
+    i++;
+  };
+  img.onload = () => onSuccess(img.src);
+  img.onerror = tryNext;
+  tryNext();
+}
+
+viewCardBtn.addEventListener('click', () => {
+  finalScreenEl.classList.add('hidden');
+  cardScreenEl.classList.remove('hidden');
+  cardImageEl.classList.remove('loaded');
+  cardStatusEl.textContent = 'Loading card…';
+  downloadCardLink.removeAttribute('href');
+
+  loadCardImage(
+    selectedCharacter.cardBase,
+    (src) => {
+      cardStatusEl.textContent = '';
+      cardImageEl.src = src;
+      cardImageEl.classList.add('loaded');
+      downloadCardLink.href = src;
+      downloadCardLink.download = `${selectedCharacter.cardBase}.png`;
+    },
+    () => {
+      cardStatusEl.textContent =
+        `Couldn't find a card image for "${selectedCharacter.cardBase}". ` +
+        `Make sure it's saved as cards/${selectedCharacter.cardBase}.jpg (or .png) next to index.html.`;
+    }
+  );
+});
+
+cardBackBtn.addEventListener('click', () => {
+  cardScreenEl.classList.add('hidden');
+  finalScreenEl.classList.remove('hidden');
 });

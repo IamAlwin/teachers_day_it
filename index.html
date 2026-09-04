@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Debug Quest: The Teacher Chronicles</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,7 +19,8 @@
 
       <div id="characters"></div>
 
-      <p class="hint">Move: Arrow keys / WASD &nbsp;·&nbsp; Shoot: Space &nbsp;·&nbsp; Pause: P</p>
+      <p class="hint desktop-hint">Move: Arrow keys / WASD &nbsp;·&nbsp; Shoot: Space &nbsp;·&nbsp; Pause: P</p>
+      <p class="hint mobile-hint">Drag the joystick to move &nbsp;·&nbsp; Tap FIRE to shoot</p>
     </div>
 
     <!-- Canvas -->
@@ -27,6 +28,14 @@
 
     <!-- HUD controls (mute) -->
     <button id="mute-btn" class="icon-btn" title="Mute/unmute" aria-label="Mute or unmute sound">🔊</button>
+
+    <!-- Mobile touch controls -->
+    <div id="mobile-controls">
+      <div id="joystick-base">
+        <div id="joystick-knob"></div>
+      </div>
+      <button id="fire-btn">FIRE</button>
+    </div>
 
     <!-- Pause overlay -->
     <div id="pause-screen" class="overlay hidden">
@@ -47,7 +56,20 @@
       <h2>You Saved the Lab!</h2>
       <p class="subtitle">The school runs smoothly... for now.</p>
       <p class="signature">— A Teacher's Day tribute from Alwin Raj</p>
+      <button id="view-card-btn">View Teacher's Day Card</button>
       <button id="replay-btn">Replay</button>
+    </div>
+
+    <!-- Card Screen -->
+    <div id="card-screen" class="overlay hidden">
+      <p id="card-status" class="subtitle"></p>
+      <img id="card-image" alt="Teacher's Day card" />
+      <div class="card-actions">
+        <a id="download-card-link" download>
+          <button id="download-card-btn" type="button">Download Card</button>
+        </a>
+        <button id="card-back-btn">Back</button>
+      </div>
     </div>
 
     <!-- Game Over overlay is created dynamically in game.js -->

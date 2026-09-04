@@ -201,3 +201,112 @@ button:active { transform: translateY(0); }
   h2 { font-size: 1rem; }
   .character-card { width: 100%; max-width: 280px; }
 }
+
+/* ============================================================
+   Mobile hint toggling (JS adds/removes .touch-device on body)
+   ============================================================ */
+.mobile-hint { display: none; }
+.touch-device .mobile-hint { display: block; }
+.touch-device .desktop-hint { display: none; }
+
+/* ============================================================
+   Mobile touch controls
+   ============================================================ */
+#mobile-controls {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.touch-device #mobile-controls {
+  display: block;
+}
+
+#joystick-base {
+  position: absolute;
+  left: max(28px, env(safe-area-inset-left));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  touch-action: none;
+  pointer-events: auto;
+}
+
+#joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: rgba(0, 242, 255, 0.55);
+  border: 2px solid rgba(0, 242, 255, 0.9);
+  transition: background 0.1s ease;
+}
+
+#joystick-base.active #joystick-knob {
+  background: rgba(0, 242, 255, 0.8);
+}
+
+#fire-btn {
+  position: absolute;
+  right: max(32px, env(safe-area-inset-right));
+  bottom: max(40px, env(safe-area-inset-bottom));
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: rgba(255, 0, 85, 0.35);
+  border: 2px solid rgba(255, 0, 85, 0.8);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  touch-action: none;
+  pointer-events: auto;
+  margin: 0;
+}
+
+#fire-btn:active,
+#fire-btn.active {
+  background: rgba(255, 0, 85, 0.6);
+  transform: none;
+}
+
+/* ============================================================
+   Card screen (shows the Canva-made card image)
+   ============================================================ */
+#card-screen {
+  background: rgba(11, 15, 25, 0.96);
+}
+
+#card-image {
+  max-width: min(520px, 88vw);
+  max-height: 65vh;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: none;
+}
+
+#card-image.loaded { display: block; }
+
+.card-actions { margin-top: 18px; }
+
+#download-card-btn { background: var(--gold); }
+#download-card-btn:hover { background: #ffe29a; box-shadow: 0 6px 18px rgba(255, 209, 102, 0.4); }
+
+#card-back-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+#card-back-btn:hover { background: var(--bg-panel); box-shadow: none; }
+
+@media (max-width: 480px) {
+  #card-image { max-height: 55vh; }
+}
