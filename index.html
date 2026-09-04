@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debug Quest: The Teacher Chronicles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-container">
+
+    <!-- Character Select -->
+    <div id="character-select" class="overlay">
+      <h1>Debug Quest: The Teacher Chronicles</h1>
+      <p class="subtitle">Choose Your Teacher Hero</p>
+
+      <div id="characters"></div>
+
+      <p class="hint">Move: Arrow keys / WASD &nbsp;·&nbsp; Shoot: Space &nbsp;·&nbsp; Pause: P</p>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD controls (mute) -->
+    <button id="mute-btn" class="icon-btn" title="Mute/unmute" aria-label="Mute or unmute sound">🔊</button>
+
+    <!-- Pause overlay -->
+    <div id="pause-screen" class="overlay hidden">
+      <h2>Paused</h2>
+      <p class="subtitle">Take a breather, System Debugger</p>
+      <button id="resume-btn">Resume</button>
+    </div>
+
+    <!-- Level Complete -->
+    <div id="level-complete" class="overlay hidden">
+      <h2 id="level-title">Level Complete</h2>
+      <p id="level-summary" class="subtitle"></p>
+      <button id="next-level-btn">Next Level</button>
+    </div>
+
+    <!-- Final Screen -->
+    <div id="final-screen" class="overlay hidden">
+      <h2>You Saved the Lab!</h2>
+      <p class="subtitle">The school runs smoothly... for now.</p>
+      <p class="signature">— A Teacher's Day tribute from Alwin Raj</p>
+      <button id="replay-btn">Replay</button>
+    </div>
+
+    <!-- Game Over overlay is created dynamically in game.js -->
+
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
